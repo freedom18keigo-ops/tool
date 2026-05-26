@@ -1,0 +1,642 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<!-- PWA: iOSホーム画面アプリ化 -->
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="利益計算">
+<meta name="theme-color" content="#0f0f13">
+<!-- PWA マニフェスト（インライン） -->
+<link rel="manifest" href="data:application/manifest+json,%7B%22name%22%3A%22%E5%88%A9%E7%9B%8A%E7%8E%87%E8%A8%88%E7%AE%97%E3%83%84%E3%83%BC%E3%83%AB%22%2C%22short_name%22%3A%22%E5%88%A9%E7%9B%8A%E8%A8%88%E7%AE%97%22%2C%22start_url%22%3A%22.%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%230f0f13%22%2C%22theme_color%22%3A%22%230f0f13%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22data%3Aimage%2Fsvg%2Bxml%2C%253Csvg%2520xmlns%3D%2527http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%2527%2520viewBox%3D%25270%25200%2520192%2520192%2527%253E%253Crect%2520width%3D%2527192%2527%2520height%3D%2527192%2527%2520rx%3D%252738%2527%2520fill%3D%2527%25230f0f13%2527%2F%253E%253Ctext%2520x%3D%252796%2527%2520y%3D%2527130%2527%2520font-size%3D%2527110%2527%2520text-anchor%3D%2527middle%2527%2520fill%3D%2527%25236ee7b7%2527%253E%25C2%25A5%253C%2Ftext%253E%253C%2Fsvg%253E%22%2C%22sizes%22%3A%22192x192%22%2C%22type%22%3A%22image%2Fsvg%2Bxml%22%7D%5D%7D">
+<!-- iOSホーム画面アイコン（SVGをBase64） -->
+<link rel="apple-touch-icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAxODAgMTgwIj48cmVjdCB3aWR0aD0iMTgwIiBoZWlnaHQ9IjE4MCIgcng9IjM2IiBmaWxsPSIjMGYwZjEzIi8+PGRlZnM+PGxpbmVhckdyYWRpZW50IGlkPSJnIiB4MT0iMCIgeTE9IjAiIHgyPSIxIiB5Mj0iMSI+PHN0b3Agb2Zmc2V0PSIwJSIgc3RvcC1jb2xvcj0iIzZlZTdiNyIvPjxzdG9wIG9mZnNldD0iMTAwJSIgc3RvcC1jb2xvcj0iIzgxOGNmOCIvPjwvbGluZWFyR3JhZGllbnQ+PC9kZWZzPjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjE0MCIgaGVpZ2h0PSIxNDAiIHJ4PSIyNCIgZmlsbD0idXJsKCNnKSIgb3BhY2l0eT0iMC4xNSIvPjx0ZXh0IHg9IjkwIiB5PSIxMjAiIGZvbnQtc2l6ZT0iOTAiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGZpbGw9InVybCgjZykiIGZvbnQtZmFtaWx5PSItYXBwbGUtc3lzdGVtLHNhbnMtc2VyaWYiIGZvbnQtd2VpZ2h0PSI2MDAiPiY5NzY1OzwvdGV4dD48L3N2Zz4=">
+<title>利益計算ツール</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+:root{
+  --bg:#0f0f13;
+  --panel:#18181f;
+  --border:#2a2a38;
+  --accent:#6ee7b7;
+  --accent2:#818cf8;
+  --accent3:#fb923c;
+  --text:#e2e8f0;
+  --muted:#64748b;
+  --input-bg:#0f0f13;
+  --radius:10px;
+}
+body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Hiragino Sans','Hiragino Kaku Gothic ProN','Yu Gothic UI',sans-serif;font-size:13px;min-height:100vh;padding:0}
+
+.app{max-width:820px;margin:0 auto;padding:0 0 60px}
+
+/* Header */
+.top-bar{display:flex;align-items:center;gap:10px;padding:env(safe-area-inset-top,52px) 16px 14px;padding-top:max(env(safe-area-inset-top),52px);border-bottom:1px solid var(--border);background:var(--bg);position:sticky;top:0;z-index:100}
+.logo{width:34px;height:34px;background:linear-gradient(135deg,var(--accent),var(--accent2));border-radius:9px;display:flex;align-items:center;justify-content:center;font-size:16px;font-weight:600;color:#0f0f13;flex-shrink:0}
+h1{font-size:15px;font-weight:500;letter-spacing:.01em;color:var(--text)}
+.subtitle{font-size:11px;color:var(--muted);margin-top:2px}
+
+/* インストール誘導バナー */
+#install-banner{display:none;margin:10px 12px 0;background:linear-gradient(135deg,#1a1a2e,#16213e);border:1px solid var(--accent2);border-radius:10px;padding:10px 14px;align-items:center;gap:10px}
+#install-banner.show{display:flex}
+.install-icon{font-size:22px;flex-shrink:0}
+.install-text{flex:1;font-size:11px;color:var(--text);line-height:1.5}
+.install-text strong{color:var(--accent2);display:block;margin-bottom:2px;font-size:12px}
+.install-close{background:transparent;border:none;color:var(--muted);font-size:18px;cursor:pointer;padding:0 2px;line-height:1}
+
+/* Tabs */
+.tabs{display:flex;gap:0;padding:10px 16px 0;background:var(--bg);border-bottom:1px solid var(--border)}
+.tab{flex:1;text-align:center;padding:8px 4px 10px;color:var(--muted);font-size:12px;font-weight:500;border:none;background:transparent;cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;position:relative;top:1px}
+.tab.active{color:var(--accent);border-bottom-color:var(--accent)}
+
+/* Content */
+.content{display:none;padding:14px 12px 0}
+.content.active{display:block}
+
+/* Grid */
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+@media(max-width:480px){.grid{grid-template-columns:1fr}}
+
+/* Cards */
+.card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;transition:border-color .2s}
+.card-head{display:flex;align-items:center;gap:8px;padding:10px 14px 8px;border-bottom:1px solid var(--border)}
+.num{width:20px;height:20px;border-radius:5px;font-size:10px;font-weight:500;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.card-title{font-size:12px;font-weight:500;flex:1;color:var(--text)}
+.formula-badge{font-size:9px;color:var(--muted);background:#1e1e28;padding:1px 6px;border-radius:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:160px;font-family:monospace}
+
+.card-body{padding:12px 14px 14px}
+.row{display:flex;align-items:center;gap:6px;margin-bottom:8px}
+.row:last-of-type{margin-bottom:0}
+.row label{font-size:11px;color:var(--muted);white-space:nowrap;width:90px;flex-shrink:0}
+.num-input{flex:1;background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:8px 8px;font-size:16px;color:var(--text);outline:none;transition:border-color .15s;width:100%;min-width:0;font-variant-numeric:tabular-nums;letter-spacing:.02em}
+.num-input:focus{border-color:var(--accent2)}
+.num-input.has-value{color:#fff;font-weight:500}
+.unit{font-size:11px;color:var(--muted);width:18px;text-align:left;flex-shrink:0}
+
+/* Results */
+.result{background:#0a1a13;border:1px solid #1d4a36;border-radius:7px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.result-label{font-size:10px;color:var(--accent);letter-spacing:.05em}
+.result-val{font-size:18px;font-weight:500;color:var(--accent);letter-spacing:-.01em;font-variant-numeric:tabular-nums}
+
+.result2{background:#0d0e1f;border:1px solid #2a2a6a;border-radius:7px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.result2 .result-label{color:var(--accent2)}
+.result2 .result-val{color:var(--accent2);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+
+.result3{background:#1a0f00;border:1px solid #4a2a00;border-radius:7px;padding:10px 12px;display:flex;align-items:center;justify-content:space-between;margin-top:10px}
+.result3 .result-label{color:var(--accent3)}
+.result3 .result-val{color:var(--accent3);font-size:18px;font-weight:500;font-variant-numeric:tabular-nums}
+
+/* Badge colors */
+.tag-green{background:#6ee7b7;color:#0f0f13}
+.tag-blue{background:var(--accent2);color:#0f0f13}
+.tag-orange{background:var(--accent3);color:#0f0f13}
+.tag-purple{background:#c084fc;color:#0f0f13}
+
+/* Warehouse row */
+.w7-row{display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px}
+.w7-sub{font-size:12px;color:#c084fc;font-variant-numeric:tabular-nums;text-align:right;padding-right:2px}
+
+/* Clear btn */
+.clr{display:block;width:100%;margin-top:8px;padding:8px;border:1px solid var(--border);border-radius:6px;background:transparent;font-size:11px;color:var(--muted);cursor:pointer;transition:background .15s}
+.clr:active{background:var(--border)}
+
+/* Formula table */
+.tbl-section-label{font-size:10px;font-weight:500;color:var(--muted);letter-spacing:.08em;padding:14px 0 6px;text-transform:uppercase}
+.tbl-card{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);margin-bottom:10px;overflow:hidden}
+.tbl-head{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--border)}
+.tbl-title{font-size:12px;font-weight:500;color:var(--text)}
+.tbl-body{padding:10px 14px 12px}
+.tbl-formula{background:#1e1e28;border-radius:6px;padding:8px 10px;font-size:12px;color:var(--accent2);font-family:monospace;margin-bottom:8px;line-height:1.5}
+.tbl-example{font-size:11px;color:var(--muted);line-height:1.6}
+.tbl-result{display:inline-block;margin-top:5px;font-size:12px;font-weight:500;padding:2px 8px;border-radius:5px}
+.tbl-result.green{background:#0a1a13;color:var(--accent)}
+.tbl-result.blue{background:#0d0e1f;color:var(--accent2)}
+.tbl-result.orange{background:#1a0f00;color:var(--accent3)}
+.tbl-result.purple{background:#1a0a2a;color:#c084fc}
+
+/* Point box */
+.point{background:var(--panel);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;margin-bottom:10px}
+.point-title{font-size:12px;font-weight:500;color:var(--text);margin-bottom:6px}
+.point-body{font-size:11px;color:var(--muted);line-height:1.7}
+.point-body strong{color:var(--text)}
+
+/* オフラインバッジ */
+#offline-badge{display:none;position:fixed;bottom:max(env(safe-area-inset-bottom),16px);right:16px;background:#1a0f00;border:1px solid #fb923c;border-radius:20px;padding:5px 12px;font-size:11px;color:#fb923c;z-index:999}
+#offline-badge.show{display:block}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="top-bar">
+    <div class="logo">¥</div>
+    <div>
+      <h1>売上・原価・利益率 計算ツール</h1>
+      <div class="subtitle">任意の数字を入力すると自動計算されます</div>
+    </div>
+  </div>
+
+  <!-- iOSホーム画面追加ガイド -->
+  <div id="install-banner">
+    <div class="install-icon">📲</div>
+    <div class="install-text">
+      <strong>ホーム画面に追加してアプリとして使えます</strong>
+      ブラウザ下部の「共有」→「ホーム画面に追加」をタップ
+    </div>
+    <button class="install-close" onclick="closeBanner()">×</button>
+  </div>
+
+  <div class="tabs">
+    <button class="tab active" onclick="sw(0)">① 基本</button>
+    <button class="tab" onclick="sw(1)">② 売価・値引</button>
+    <button class="tab" onclick="sw(2)">③ 倉庫</button>
+    <button class="tab" onclick="sw(3)">④ 公式一覧</button>
+  </div>
+
+  <!-- TAB 0 -->
+  <div class="content active" id="t0">
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-green">①</span><span class="card-title">利益額（粗利額）</span><span class="formula-badge">売上−原価</span></div>
+        <div class="card-body">
+          <div class="row"><label>売上</label><input type="text" class="num-input" id="c1s" placeholder="0" oninput="c1()"><span class="unit">円</span></div>
+          <div class="row"><label>原価</label><input type="text" class="num-input" id="c1c" placeholder="0" oninput="c1()"><span class="unit">円</span></div>
+          <div class="result"><span class="result-label">利益額</span><span class="result-val" id="r1">—</span></div>
+          <button class="clr" onclick="cl('c1s','c1c');c1()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-green">②</span><span class="card-title">利益率（粗利率）</span><span class="formula-badge">(売上−原価)÷売上</span></div>
+        <div class="card-body">
+          <div class="row"><label>売上</label><input type="text" class="num-input" id="c2s" placeholder="0" oninput="c2()"><span class="unit">円</span></div>
+          <div class="row"><label>原価</label><input type="text" class="num-input" id="c2c" placeholder="0" oninput="c2()"><span class="unit">円</span></div>
+          <div class="result"><span class="result-label">利益率</span><span class="result-val" id="r2">—</span></div>
+          <button class="clr" onclick="cl('c2s','c2c');c2()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-blue">③</span><span class="card-title">原価率</span><span class="formula-badge">原価÷売上×100</span></div>
+        <div class="card-body">
+          <div class="row"><label>売上</label><input type="text" class="num-input" id="c3s" placeholder="0" oninput="c3()"><span class="unit">円</span></div>
+          <div class="row"><label>原価</label><input type="text" class="num-input" id="c3c" placeholder="0" oninput="c3()"><span class="unit">円</span></div>
+          <div class="result2"><span class="result-label">原価率</span><span class="result-val" id="r3">—</span></div>
+          <button class="clr" onclick="cl('c3s','c3c');c3()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-blue">④</span><span class="card-title">目標利益率の売価</span><span class="formula-badge">原価÷(1−利益率)</span></div>
+        <div class="card-body">
+          <div class="row"><label>原価</label><input type="text" class="num-input" id="c4c" placeholder="0" oninput="c4()"><span class="unit">円</span></div>
+          <div class="row"><label>目標利益率</label><input type="text" class="num-input" id="c4m" placeholder="0" oninput="c4()"><span class="unit">%</span></div>
+          <div class="result2"><span class="result-label">必要売価</span><span class="result-val" id="r4">—</span></div>
+          <button class="clr" onclick="cl('c4c','c4m');c4()">クリア</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 1 -->
+  <div class="content" id="t1">
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-orange">⑤</span><span class="card-title">売価から必要原価</span><span class="formula-badge">売価×(1−利益率)</span></div>
+        <div class="card-body">
+          <div class="row"><label>売価</label><input type="text" class="num-input" id="c5p" placeholder="0" oninput="c5()"><span class="unit">円</span></div>
+          <div class="row"><label>目標利益率</label><input type="text" class="num-input" id="c5m" placeholder="0" oninput="c5()"><span class="unit">%</span></div>
+          <div class="result3"><span class="result-label">許容原価</span><span class="result-val" id="r5">—</span></div>
+          <button class="clr" onclick="cl('c5p','c5m');c5()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-orange">⑥</span><span class="card-title">原価に○%上乗せ</span><span class="formula-badge">原価×(1＋上乗せ率)</span></div>
+        <div class="card-body">
+          <div class="row"><label>原価</label><input type="text" class="num-input" id="c6c" placeholder="0" oninput="c6()"><span class="unit">円</span></div>
+          <div class="row"><label>上乗せ率</label><input type="text" class="num-input" id="c6r" placeholder="0" oninput="c6()"><span class="unit">%</span></div>
+          <div class="result3"><span class="result-label">売価</span><span class="result-val" id="r6">—</span></div>
+          <div style="margin-top:5px;font-size:10px;color:var(--muted)">実際の利益率: <span id="r6m" style="color:var(--accent3)">—</span></div>
+          <button class="clr" onclick="cl('c6c','c6r');c6()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-green">⑦</span><span class="card-title">利益率→利益額</span><span class="formula-badge">売上×利益率</span></div>
+        <div class="card-body">
+          <div class="row"><label>売上</label><input type="text" class="num-input" id="c7s" placeholder="0" oninput="c7()"><span class="unit">円</span></div>
+          <div class="row"><label>利益率</label><input type="text" class="num-input" id="c7m" placeholder="0" oninput="c7()"><span class="unit">%</span></div>
+          <div class="result"><span class="result-label">利益額</span><span class="result-val" id="r7">—</span></div>
+          <button class="clr" onclick="cl('c7s','c7m');c7()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-green">⑧</span><span class="card-title">利益額から必要売上</span><span class="formula-badge">原価＋欲しい利益額</span></div>
+        <div class="card-body">
+          <div class="row"><label>原価</label><input type="text" class="num-input" id="c8c" placeholder="0" oninput="c8()"><span class="unit">円</span></div>
+          <div class="row"><label>欲しい利益額</label><input type="text" class="num-input" id="c8p" placeholder="0" oninput="c8()"><span class="unit">円</span></div>
+          <div class="result"><span class="result-label">必要売上</span><span class="result-val" id="r8">—</span></div>
+          <button class="clr" onclick="cl('c8c','c8p');c8()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-blue">⑨</span><span class="card-title">値上げ率</span><span class="formula-badge">(新−旧)÷旧×100</span></div>
+        <div class="card-body">
+          <div class="row"><label>旧価格</label><input type="text" class="num-input" id="c9o" placeholder="0" oninput="c9()"><span class="unit">円</span></div>
+          <div class="row"><label>新価格</label><input type="text" class="num-input" id="c9n" placeholder="0" oninput="c9()"><span class="unit">円</span></div>
+          <div class="result2"><span class="result-label">値上げ率</span><span class="result-val" id="r9">—</span></div>
+          <button class="clr" onclick="cl('c9o','c9n');c9()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-orange">⑩</span><span class="card-title">値引率・値引後価格</span><span class="formula-badge">元値×(1−値引率)</span></div>
+        <div class="card-body">
+          <div class="row"><label>元値</label><input type="text" class="num-input" id="c10o" placeholder="0" oninput="c10()"><span class="unit">円</span></div>
+          <div class="row"><label>値引率</label><input type="text" class="num-input" id="c10r" placeholder="0" oninput="c10()"><span class="unit">%</span></div>
+          <div class="result3"><span class="result-label">値引後価格</span><span class="result-val" id="r10a">—</span></div>
+          <div style="margin-top:5px;font-size:10px;color:var(--muted)">値引額: <span id="r10b" style="color:var(--accent3)">—</span></div>
+          <button class="clr" onclick="cl('c10o','c10r');c10()">クリア</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 2: 倉庫 -->
+  <div class="content" id="t2">
+    <div class="grid">
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-green">W1</span><span class="card-title">坪単価を算出する</span><span class="formula-badge">月額÷坪数</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 倉庫の月額費用と坪数から、1坪あたりの単価を計算します</div>
+          <div class="row"><label>月額費用</label><input type="text" class="num-input" id="w1m" placeholder="0" oninput="w1()"><span class="unit">円</span></div>
+          <div class="row"><label>契約坪数</label><input type="text" class="num-input" id="w1t" placeholder="0" oninput="w1()"><span class="unit">坪</span></div>
+          <div class="result"><span class="result-label">坪単価</span><span class="result-val" id="rw1">—</span></div>
+          <button class="clr" onclick="cl('w1m','w1t');w1()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-green">W2</span><span class="card-title">必要坪数を計算する</span><span class="formula-badge">PL数÷2</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 1坪＝2PL（通路込み）で必要坪数を算出します</div>
+          <div class="row"><label>パレット数</label><input type="text" class="num-input" id="w2p" placeholder="0" oninput="w2()"><span class="unit">PL</span></div>
+          <div class="row"><label>坪/PL比率</label><input type="text" class="num-input" id="w2r" placeholder="2" oninput="w2()"><span class="unit">PL/坪</span></div>
+          <div class="result"><span class="result-label">必要坪数</span><span class="result-val" id="rw2">—</span></div>
+          <div style="margin-top:5px;font-size:10px;color:var(--muted)">参考面積: <span id="rw2m" style="color:var(--accent)">—</span></div>
+          <button class="clr" onclick="cl('w2p');document.getElementById('w2r').value='2';w2()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-blue">W3</span><span class="card-title">保管料（月額）</span><span class="formula-badge">坪数×坪単価</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 使用坪数と坪単価から月額保管料を計算します</div>
+          <div class="row"><label>使用坪数</label><input type="text" class="num-input" id="w3t" placeholder="0" oninput="w3()"><span class="unit">坪</span></div>
+          <div class="row"><label>坪単価</label><input type="text" class="num-input" id="w3u" placeholder="0" oninput="w3()"><span class="unit">円/坪</span></div>
+          <div class="result2"><span class="result-label">月額保管料</span><span class="result-val" id="rw3">—</span></div>
+          <button class="clr" onclick="cl('w3t','w3u');w3()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-blue">W4</span><span class="card-title">入庫料</span><span class="formula-badge">PL数×単価</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 入庫するパレット数と1PL当たりの入庫単価から合計を計算します</div>
+          <div class="row"><label>入庫PL数</label><input type="text" class="num-input" id="w4p" placeholder="0" oninput="w4()"><span class="unit">PL</span></div>
+          <div class="row"><label>入庫単価</label><input type="text" class="num-input" id="w4u" placeholder="0" oninput="w4()"><span class="unit">円/PL</span></div>
+          <div class="result2"><span class="result-label">入庫料合計</span><span class="result-val" id="rw4">—</span></div>
+          <button class="clr" onclick="cl('w4p','w4u');w4()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-orange">W5</span><span class="card-title">出庫料</span><span class="formula-badge">PL数×単価</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 出庫するパレット数と1PL当たりの出庫単価から合計を計算します</div>
+          <div class="row"><label>出庫PL数</label><input type="text" class="num-input" id="w5p" placeholder="0" oninput="w5()"><span class="unit">PL</span></div>
+          <div class="row"><label>出庫単価</label><input type="text" class="num-input" id="w5u" placeholder="0" oninput="w5()"><span class="unit">円/PL</span></div>
+          <div class="result3"><span class="result-label">出庫料合計</span><span class="result-val" id="rw5">—</span></div>
+          <button class="clr" onclick="cl('w5p','w5u');w5()">クリア</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-orange">W6</span><span class="card-title">デバン料</span><span class="formula-badge">本数×単価</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 コンテナ本数と1本あたりのデバン単価から合計を計算します</div>
+          <div class="row"><label>コンテナ本数</label><input type="text" class="num-input" id="w6n" placeholder="0" oninput="w6()"><span class="unit">本</span></div>
+          <div class="row"><label>デバン単価</label><input type="text" class="num-input" id="w6u" placeholder="0" oninput="w6()"><span class="unit">円/本</span></div>
+          <div class="result3"><span class="result-label">デバン料合計</span><span class="result-val" id="rw6">—</span></div>
+          <button class="clr" onclick="cl('w6n','w6u');w6()">クリア</button>
+        </div>
+      </div>
+
+    </div>
+
+    <div style="margin-top:10px">
+
+      <div class="card">
+        <div class="card-head"><span class="num tag-purple">W7</span><span class="card-title">必要作業時間を計算する</span><span class="formula-badge">数量×作業時間/個</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:10px;line-height:1.5">💡 作業種別ごとに数量と1個あたりの作業時間を入力。合計の作業時間を算出します</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr auto;gap:6px;align-items:center;margin-bottom:6px">
+            <span style="font-size:10px;color:var(--muted)">作業名</span>
+            <span style="font-size:10px;color:var(--muted)">数量</span>
+            <span style="font-size:10px;color:var(--muted)">時間/個(分)</span>
+            <span style="font-size:10px;color:var(--muted)">小計</span>
+          </div>
+          <div id="w7rows"></div>
+          <button onclick="addW7Row()" style="display:block;width:100%;margin-top:6px;padding:7px;border:1px dashed var(--border);border-radius:6px;background:transparent;font-size:11px;color:var(--accent2);cursor:pointer">＋ 作業を追加</button>
+          <div style="margin-top:10px;border-top:1px solid var(--border);padding-top:10px">
+            <div class="result2" style="margin-top:0"><span class="result-label">合計作業時間</span><span class="result-val" id="rw7total">—</span></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-top:10px">
+        <div class="card-head"><span class="num tag-purple">W8</span><span class="card-title">必要作業員数を計算する</span><span class="formula-badge">総作業時間÷稼働時間</span></div>
+        <div class="card-body">
+          <div style="font-size:10px;color:var(--muted);margin-bottom:8px;line-height:1.5">💡 W7の合計、または手入力した総作業時間を1人の稼働時間で割り、必要人数を算出します</div>
+          <div class="row"><label>総作業時間</label><input type="text" class="num-input" id="w8h" placeholder="0" oninput="w8()"><span class="unit">分</span></div>
+          <div class="row"><label>1人の稼働時間</label><input type="text" class="num-input" id="w8w" placeholder="480" oninput="w8()"><span class="unit">分/日</span></div>
+          <div class="result2"><span class="result-label">必要作業員数</span><span class="result-val" id="rw8">—</span></div>
+          <div style="margin-top:5px;font-size:10px;color:var(--muted)">端数切上: <span id="rw8c" style="color:var(--accent2)">—</span></div>
+          <button class="clr" onclick="cl('w8h','w8w');w8()">クリア</button>
+          <button onclick="fillW8fromW7()" style="display:block;width:100%;margin-top:6px;padding:7px;border:1px solid var(--accent2);border-radius:6px;background:transparent;font-size:11px;color:var(--accent2);cursor:pointer">↑ W7の合計時間を転記</button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- TAB 3: 公式一覧 -->
+  <div class="content" id="t3">
+
+    <div class="tbl-section-label">🟢 利益系</div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-green">①</span><span class="tbl-title">利益額（粗利額）</span></div><div class="tbl-body"><div class="tbl-formula">利益額 ＝ 売上 − 原価</div><div class="tbl-example">例：96,000 − 70,000 <span class="tbl-result green">＝ 26,000円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-green">②</span><span class="tbl-title">利益率（粗利率）</span></div><div class="tbl-body"><div class="tbl-formula">(売上 − 原価) ÷ 売上 × 100</div><div class="tbl-example">例：(96,000 − 70,000) ÷ 96,000 × 100 <span class="tbl-result green">＝ 27.1%</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-green">⑦</span><span class="tbl-title">利益率から利益額</span></div><div class="tbl-body"><div class="tbl-formula">利益額 ＝ 売上 × 利益率</div><div class="tbl-example">例：96,000 × 20% <span class="tbl-result green">＝ 19,200円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-green">⑧</span><span class="tbl-title">欲しい利益額から必要売上</span></div><div class="tbl-body"><div class="tbl-formula">必要売上 ＝ 原価 ＋ 欲しい利益額</div><div class="tbl-example">例：70,000 ＋ 20,000 <span class="tbl-result green">＝ 90,000円</span></div></div></div>
+
+    <div class="tbl-section-label">🔵 原価・売価系</div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-blue">③</span><span class="tbl-title">原価率</span></div><div class="tbl-body"><div class="tbl-formula">原価率 ＝ 原価 ÷ 売上 × 100</div><div class="tbl-example">例：70,000 ÷ 96,000 × 100 <span class="tbl-result blue">＝ 72.9%</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-blue">④</span><span class="tbl-title">目標利益率にしたい時の売価</span></div><div class="tbl-body"><div class="tbl-formula">必要売価 ＝ 原価 ÷ (1 − 利益率)</div><div class="tbl-example">例：70,000 ÷ (1 − 20%) ＝ 70,000 ÷ 0.8 <span class="tbl-result blue">＝ 87,500円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-orange">⑤</span><span class="tbl-title">売価から許容原価</span></div><div class="tbl-body"><div class="tbl-formula">許容原価 ＝ 売価 × (1 − 利益率)</div><div class="tbl-example">例：96,000 × (1 − 20%) <span class="tbl-result orange">＝ 76,800円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-orange">⑥</span><span class="tbl-title">原価に○%上乗せした売価</span></div><div class="tbl-body"><div class="tbl-formula">売価 ＝ 原価 × (1 ＋ 上乗せ率)</div><div class="tbl-example">例：70,000 × 1.2 <span class="tbl-result orange">＝ 84,000円</span>（利益率は16.7%）</div></div></div>
+
+    <div class="tbl-section-label">🟣 値上げ・値引き</div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-blue">⑨</span><span class="tbl-title">値上げ率</span></div><div class="tbl-body"><div class="tbl-formula">(新価格 − 旧価格) ÷ 旧価格 × 100</div><div class="tbl-example">例：(96,000 − 70,000) ÷ 70,000 × 100 <span class="tbl-result blue">＝ 37.1%</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-orange">⑩</span><span class="tbl-title">値引率・値引後価格</span></div><div class="tbl-body"><div class="tbl-formula">値引後価格 ＝ 元値 × (1 − 値引率)</div><div class="tbl-example">例：96,000 × 0.9 <span class="tbl-result orange">＝ 86,400円</span>（値引額 9,600円）</div></div></div>
+
+    <div class="tbl-section-label">🏭 倉庫運営系</div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-green">W1</span><span class="tbl-title">坪単価の算出</span></div><div class="tbl-body"><div class="tbl-formula">坪単価 ＝ 月額費用 ÷ 契約坪数</div><div class="tbl-example">例：510,000円 ÷ 150坪 <span class="tbl-result green">＝ 3,400円/坪</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-green">W2</span><span class="tbl-title">必要坪数の算出</span></div><div class="tbl-body"><div class="tbl-formula">必要坪数 ＝ 総パレット数 ÷ 2（通路込み）</div><div class="tbl-example">例：300PL ÷ 2 <span class="tbl-result green">＝ 150坪（約495㎡）</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-blue">W3</span><span class="tbl-title">月額保管料</span></div><div class="tbl-body"><div class="tbl-formula">月額保管料 ＝ 使用坪数 × 坪単価</div><div class="tbl-example">例：150坪 × 3,400円 <span class="tbl-result blue">＝ 510,000円/月</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-blue">W4</span><span class="tbl-title">入庫料</span></div><div class="tbl-body"><div class="tbl-formula">入庫料 ＝ 入庫PL数 × 入庫単価</div><div class="tbl-example">例：300PL × 500円 <span class="tbl-result blue">＝ 150,000円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-orange">W5</span><span class="tbl-title">出庫料</span></div><div class="tbl-body"><div class="tbl-formula">出庫料 ＝ 出庫PL数 × 出庫単価</div><div class="tbl-example">例：300PL × 500円 <span class="tbl-result orange">＝ 150,000円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-orange">W6</span><span class="tbl-title">デバン料</span></div><div class="tbl-body"><div class="tbl-formula">デバン料 ＝ コンテナ本数 × デバン単価</div><div class="tbl-example">例：4本 × 21,600円 <span class="tbl-result orange">＝ 86,400円</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-purple">W7</span><span class="tbl-title">必要作業時間</span></div><div class="tbl-body"><div class="tbl-formula">作業時間 ＝ Σ（各作業の数量 × 1個あたり作業時間）</div><div class="tbl-example">例：仕分け100箱×1分 ＋ 梱包50箱×3分 <span class="tbl-result purple">＝ 250分</span></div></div></div>
+    <div class="tbl-card"><div class="tbl-head"><span class="num tag-purple">W8</span><span class="tbl-title">必要作業員数</span></div><div class="tbl-body"><div class="tbl-formula">必要人数 ＝ 総作業時間（分）÷ 1人稼働時間（分）</div><div class="tbl-example">例：250分 ÷ 480分（8h） <span class="tbl-result purple">＝ 0.52人 → 切上げ1名</span></div></div></div>
+
+    <div class="tbl-section-label">⚠️ ポイント</div>
+    <div class="point"><div class="point-title">④と⑥の違いに注意</div><div class="point-body">「利益率20%の売価」と「原価に20%上乗せ」は<strong>別物</strong>。<br>④ 70,000 ÷ 0.8 ＝ <strong>87,500円</strong>（売価に対して20%の利益）<br>⑥ 70,000 × 1.2 ＝ <strong>84,000円</strong>（原価に対して20%の上乗せ）<br>→⑥の実際の利益率は <strong>16.7%</strong> になります</div></div>
+    <div class="point"><div class="point-title">利益率 ＋ 原価率 ＝ 100%</div><div class="point-body">どちらか一方がわかればすぐ計算できます。<br>例：利益率27.1% ＋ 原価率72.9% ＝ 100%</div></div>
+    <div class="point"><div class="point-title">運送業の差益率目安</div><div class="point-body">業界平均：約2〜3%（東京商工リサーチ 2024年調査）<br><strong>5%以上</strong> → 良好　／　<strong>10%以上</strong> → 優良</div></div>
+
+  </div>
+</div>
+
+<!-- オフラインバッジ -->
+<div id="offline-badge">📵 オフライン</div>
+
+<script>
+// ===== PWA: Service Worker インライン登録 =====
+const SW_CODE = `
+const CACHE = 'rieki-v1';
+self.addEventListener('install', e => {
+  e.waitUntil(
+    caches.open(CACHE).then(c => c.addAll(['./']))
+  );
+  self.skipWaiting();
+});
+self.addEventListener('activate', e => {
+  e.waitUntil(caches.keys().then(keys =>
+    Promise.all(keys.filter(k => k !== CACHE).map(k => caches.delete(k)))
+  ));
+  self.clients.claim();
+});
+self.addEventListener('fetch', e => {
+  e.respondWith(
+    caches.match(e.request).then(r => r || fetch(e.request).then(res => {
+      const clone = res.clone();
+      caches.open(CACHE).then(c => c.put(e.request, clone));
+      return res;
+    }).catch(() => caches.match('./')))
+  );
+});
+`;
+if('serviceWorker' in navigator){
+  const blob = new Blob([SW_CODE], {type:'application/javascript'});
+  const swUrl = URL.createObjectURL(blob);
+  navigator.serviceWorker.register(swUrl).catch(()=>{});
+}
+
+// ===== オフライン検知 =====
+function updateOnlineStatus(){
+  const badge = document.getElementById('offline-badge');
+  badge.classList.toggle('show', !navigator.onLine);
+}
+window.addEventListener('online', updateOnlineStatus);
+window.addEventListener('offline', updateOnlineStatus);
+
+// ===== iOS インストールバナー =====
+function closeBanner(){
+  document.getElementById('install-banner').classList.remove('show');
+  localStorage.setItem('banner-closed','1');
+}
+function showBannerIfNeeded(){
+  const isIOS = /iphone|ipad|ipod/i.test(navigator.userAgent);
+  const isStandalone = window.navigator.standalone === true;
+  const closed = localStorage.getItem('banner-closed');
+  if(isIOS && !isStandalone && !closed){
+    document.getElementById('install-banner').classList.add('show');
+  }
+}
+
+// ===== タブ切替 =====
+function sw(i){
+  document.querySelectorAll('.tab').forEach((t,j)=>t.classList.toggle('active',i===j));
+  document.querySelectorAll('.content').forEach((c,j)=>c.classList.toggle('active',i===j));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+// ===== 桁区切り入力システム =====
+function rawNum(id){
+  const el=document.getElementById(id);
+  if(!el)return NaN;
+  const v=el.value.replace(/,/g,'');
+  return v===''?NaN:parseFloat(v);
+}
+function formatWithComma(str){
+  let s=str.replace(/[^0-9.\-]/g,'');
+  s=s.replace(/(?!^)-/g,'');
+  const parts=s.split('.');
+  if(parts.length>2)s=parts[0]+'.'+parts.slice(1).join('');
+  if(s===''||s==='-'||s==='.')return s;
+  const dotIdx=s.indexOf('.');
+  const intPart=dotIdx>=0?s.slice(0,dotIdx):s;
+  const decPart=dotIdx>=0?s.slice(dotIdx):'';
+  const sign=intPart.startsWith('-')?'-':'';
+  const digits=intPart.replace('-','');
+  return sign+digits.replace(/\B(?=(\d{3})+(?!\d))/g,',')+decPart;
+}
+function handleNumInput(el,callback){
+  const raw=el.value;
+  const pos=el.selectionStart;
+  const beforeCursor=raw.slice(0,pos).replace(/,/g,'').length;
+  const formatted=formatWithComma(raw);
+  el.value=formatted;
+  let count=0,newPos=0;
+  for(let i=0;i<formatted.length;i++){
+    if(formatted[i]!==',')count++;
+    if(count===beforeCursor){newPos=i+1;break;}
+  }
+  if(beforeCursor===0)newPos=0;
+  try{el.setSelectionRange(newPos,newPos);}catch(e){}
+  el.classList.toggle('has-value',!isNaN(parseFloat(formatted.replace(/,/g,'')))&&formatted!=='');
+  if(callback)callback();
+}
+function initNumInputs(){
+  document.querySelectorAll('.num-input').forEach(el=>{
+    const orig=el.getAttribute('oninput');
+    if(orig){
+      el.removeAttribute('oninput');
+      el.addEventListener('input',function(){
+        handleNumInput(this,()=>{try{eval(orig);}catch(e){}});
+      });
+    } else {
+      el.addEventListener('input',function(){handleNumInput(this,null);});
+    }
+  });
+}
+const g=id=>rawNum(id);
+const cl=(...ids)=>ids.forEach(id=>{
+  const el=document.getElementById(id);
+  if(el){el.value='';el.classList.remove('has-value');}
+});
+const set=(id,v)=>document.getElementById(id).textContent=v;
+const yen=n=>isNaN(n)||!isFinite(n)?'—':Math.round(n).toLocaleString('ja-JP')+'円';
+const pct=n=>isNaN(n)||!isFinite(n)?'—':n.toFixed(1)+'%';
+
+// ===== 計算関数 =====
+function c1(){set('r1',yen(g('c1s')-g('c1c')))}
+function c2(){const s=g('c2s'),c=g('c2c');set('r2',s>0?pct((s-c)/s*100):'—')}
+function c3(){const s=g('c3s'),c=g('c3c');set('r3',s>0?pct(c/s*100):'—')}
+function c4(){const c=g('c4c'),m=g('c4m');set('r4',(m<100&&m>=0)?yen(c/(1-m/100)):'—')}
+function c5(){set('r5',yen(g('c5p')*(1-g('c5m')/100)))}
+function c6(){
+  const c=g('c6c'),r=g('c6r'),p=c*(1+r/100);
+  set('r6',yen(p));
+  const m=isNaN(p)||p===0?NaN:(p-c)/p*100;
+  set('r6m',isNaN(m)?'—':pct(m));
+}
+function c7(){set('r7',yen(g('c7s')*g('c7m')/100))}
+function c8(){set('r8',yen(g('c8c')+g('c8p')))}
+function c9(){const o=g('c9o'),n=g('c9n');set('r9',o>0?pct((n-o)/o*100):'—')}
+function c10(){
+  const o=g('c10o'),r=g('c10r'),a=o*(1-r/100);
+  set('r10a',yen(a));
+  set('r10b',isNaN(a)?'—':yen(o-a));
+}
+
+// ===== 倉庫系 =====
+function w1(){const m=g('w1m'),t=g('w1t');set('rw1',t>0?yen(m/t).replace('円','円/坪'):'—')}
+function w2(){
+  const p=g('w2p');
+  const rEl=document.getElementById('w2r');
+  const r=rEl?parseFloat(rEl.value.replace(/,/g,''))||2:2;
+  const tsubo=r>0?p/r:NaN;
+  set('rw2',isNaN(tsubo)||!isFinite(tsubo)?'—':tsubo.toFixed(1)+'坪');
+  set('rw2m',isNaN(tsubo)||!isFinite(tsubo)?'—':'約'+(tsubo*3.306).toFixed(0)+'㎡');
+}
+function w3(){const t=g('w3t'),u=g('w3u');set('rw3',yen(t*u))}
+function w4(){const p=g('w4p'),u=g('w4u');set('rw4',yen(p*u))}
+function w5(){const p=g('w5p'),u=g('w5u');set('rw5',yen(p*u))}
+function w6(){const n=g('w6n'),u=g('w6u');set('rw6',yen(n*u))}
+
+let w7rowCount=0;
+function addW7Row(){
+  w7rowCount++;
+  const id=w7rowCount;
+  const div=document.createElement('div');
+  div.className='w7-row';
+  div.id='w7r'+id;
+  div.innerHTML=`
+    <input type="text" id="w7n${id}" placeholder="作業名" style="background:var(--input-bg);border:1px solid var(--border);border-radius:6px;padding:7px 6px;font-size:13px;color:var(--text);outline:none;width:100%">
+    <input type="text" id="w7q${id}" placeholder="0" class="num-input" style="padding:7px 6px;font-size:14px">
+    <input type="text" id="w7t${id}" placeholder="0" class="num-input" style="padding:7px 6px;font-size:14px">
+    <span class="w7-sub" id="w7s${id}">—</span>
+  `;
+  document.getElementById('w7rows').appendChild(div);
+  ['w7q','w7t'].forEach(prefix=>{
+    const el=document.getElementById(prefix+id);
+    if(el)el.addEventListener('input',function(){handleNumInput(this,calcW7);});
+  });
+}
+function calcW7(){
+  let total=0;
+  for(let i=1;i<=w7rowCount;i++){
+    const qEl=document.getElementById('w7q'+i);
+    const tEl=document.getElementById('w7t'+i);
+    const sEl=document.getElementById('w7s'+i);
+    if(!qEl)continue;
+    const q=parseFloat(qEl.value.replace(/,/g,'')),t=parseFloat(tEl.value.replace(/,/g,''));
+    if(!isNaN(q)&&!isNaN(t)){const sub=q*t;total+=sub;sEl.textContent=sub.toFixed(0)+'分';}
+    else{sEl.textContent='—';}
+  }
+  set('rw7total',w7rowCount>0&&total>0?total.toFixed(0)+'分':'—');
+}
+function w8(){
+  const h=g('w8h'),wt=g('w8w')||480;
+  if(isNaN(h)||h<=0){set('rw8','—');set('rw8c','—');return;}
+  const r=h/wt;
+  set('rw8',r.toFixed(2)+'人');
+  set('rw8c',Math.ceil(r)+'名必要');
+}
+function fillW8fromW7(){
+  let total=0;
+  for(let i=1;i<=w7rowCount;i++){
+    const qEl=document.getElementById('w7q'+i);
+    const tEl=document.getElementById('w7t'+i);
+    if(!qEl)continue;
+    const q=parseFloat(qEl.value.replace(/,/g,'')),t=parseFloat(tEl.value.replace(/,/g,''));
+    if(!isNaN(q)&&!isNaN(t))total+=q*t;
+  }
+  if(total>0){
+    const el=document.getElementById('w8h');
+    el.value=formatWithComma(String(Math.round(total)));
+    el.classList.add('has-value');
+    w8();
+  }
+}
+
+// ===== 初期化 =====
+document.addEventListener('DOMContentLoaded',()=>{
+  initNumInputs();
+  addW7Row();
+  addW7Row();
+  showBannerIfNeeded();
+  updateOnlineStatus();
+});
+</script>
+</body>
+</html>
